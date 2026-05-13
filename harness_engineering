@@ -1,0 +1,166 @@
+Harness Engineering: Understand this will make your AI Agent performs better than 80% of others.
+https://medium.com/ai-in-plain-english/harness-engineering-understand-this-will-make-your-ai-agent-performs-better-than-80-other-agents-271c3efeec4c
+
+Apr 6, 2026
+
+> Why Your AI Agent Keeps Failing — And It’s Not the Model’s Fault
+
+The uncomfortable truth about why smart AI systems still collapse in production — and the engineering discipline that finally fixes it.
+
+> It was 2 AM when I finally admitted defeat. I had spent three weeks fine-tuning prompts, swapping to the latest flagship model, and tweaking RAG chunking methods obsessively. My AI agent could work greatly in a sandbox. But in production? It’s a disaster. It forgot what it had decided two steps ago. It confidently declared success right before delivering a broken result. The task success rate hovered stubbornly at 68%. No matter what I did to the model, I couldn’t push it past 70%.
+
+Sound familiar?  
+Here’s what I eventually discovered: I wasn’t dealing with a model problem. I was dealing with a systems problem. And until I understood that distinction, nothing was going to change.
+
+The Three Stages of AI Engineering — And Why Most Teams Are Stuck in Stage 2
+----------------------------------------------------------------------------
+
+The maturation of LLM applications has quietly pushed us through three distinct stages of thinking. Most teams I’ve talked to are somewhere in stage one or two, wondering why stage three problems keep biting them.
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*dpLCjpbWTPibI9SPYNpjpQ.png)
+
+### Stage 1: Prompt Engineering (Did the model understand me?)
+
+This is where everyone starts. You discover that LLMs are exquisitely sensitive probability-shaping machines — a carefully crafted role, a few-shot example, the right format constraint, and suddenly the output transforms. It feels like magic. And it is powerful. For contained, single-turn tasks, good prompting is indispensable.
+But I hit the ceiling hard. No matter how beautifully I worded my instructions, I couldn’t give the model knowledge it didn’t have. I couldn’t make it remember what happened three tool calls ago. I couldn’t stop it from confidently making up data when reality disappointed it.
+
+> The gotcha :  
+> Believing that a more complex or articulate prompt can compensate for a fundamental lack of factual grounding or real-time context. It can’t.
+
+### Stage 2: Context Engineering (Does the model have the facts?)
+
+Once I understood that limitation, I dove into context. RAG pipelines. Dynamic retrieval. Tool outputs piped back in. Conversational history injected carefully. I became obsessed with what the model could see when it made a decision.
+This felt like a breakthrough — and to be fair, it was. My agent got dramatically smarter when it had access to the right information at the right time.
+But here’s what context engineering still couldn’t solve: _execution drift._
+My agent would formulate a brilliant plan, execute step one perfectly, misinterpret the tool’s return value on step two, and quietly wander off-course for the next twelve steps. And the scariest part? The system never noticed. It just kept going, confidently executing a plan that had silently become wrong miles back.
+
+> The common mistake:  
+> Equating context engineering with vector database RAG. True context management is so much more — dynamic state injection, tool response summarization, strategic historical truncation. RAG is just the beginning.
+
+### Stage 3: Harness Engineering (Can the model sustain correct action?)
+
+This is where things get interesting. And honestly, a little humbling for anyone who thought better models were the answer.
+_Harness Engineering_ is the discipline of building the scaffolding around the model — the deterministic systems that supervise what the model does, catch its failures, enforce its constraints, and pull it back on course when it drifts.
+
+> The name comes from physical harnesses: reins, safety tethers, the infrastructure of control. That’s exactly what this is.
+
+The Mental Model That Changed Everything for Me: Agent = Model + Harness
+------------------------------------------------------------------------
+
+Here’s the reframe (from LangChain) that unlocked my thinking:
+
+> Agent = Model + Harness
+
+Nearly everything in your codebase that makes the agent actually work in production — that isn’t the foundation model API call itself — is the Harness.
+The analogy I keep coming back to: imagine sending a junior employee to conduct a critical client meeting.
+- Prompting is telling them the agenda: “Say hello, pitch the product, ask for requirements.”
+- Context is handing them the dossier: “Here’s the client background, pricing sheet, and meeting objectives.”
+- The Harness is everything else: the checklist they carry, the mandated mid-meeting check-in with you, the recorded transcript, the correction mechanism if they go off-script, and the strict acceptance criteria for the meeting report.
+
+No amount of better briefing compensates for missing accountability infrastructure.
+This realization — that the first two stages help the model think better, while Harness Engineering ensures it acts reliably — is what finally broke me past 70%. By refactoring task decomposition, state management, critical step validation, and failure recovery, I pushed the same underlying model and the same prompts to over 95% task success.
+
+The Six Architectural Layers of a Mature Harness
+------------------------------------------------
+
+A Harness isn’t a single file or a clever wrapper. It’s a layered architecture, and every layer addresses a different class of failure. Here’s how I think about it:
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*Lf9Mxg7KF20Jl-jpYrOovA.png)
+
+### Layer 1: Information Boundaries (Cognitive Scope)
+
+What the model “sees” in its immediate context determines its performance more than almost anything else.
+Superfluous data doesn’t make the model smarter — it makes it lose focus. Worse, when you mix different types of information (system rules, current task state, external evidence) into an unstructured blob, the model drops constraints. Critical rules become noise that it stops attending to.
+The Harness must explicitly define and categorize what the model sees: its role, its current objective, the success criteria, and the structured separation of different information types.
+
+### Layer 2: Tool System (Actuation)
+
+Without tools, an LLM is a text predictor. With the right tool system, it becomes an agent that can interact with the real world.
+But there’s a critical mistake I made early on: giving the model too many tools. Fifteen tools with comprehensive documentation sounds powerful. In practice, it diffuses attention and causes the model to hallucinate non-existent parameters or misuse APIs it barely understands.
+The Harness must control when tools are used, not just which tools are available. It must prevent the model from blindly guessing when it should be searching, and stop it from searching when it already has the answer.
+And this is non-negotiable: never pipe raw tool outputs directly back into the LLM. A 50-item JSON response from an API call will poison your context. The Harness must filter, parse, and summarize tool returns before they touch the model.
+
+### Layer 3: Execution Orchestration (Planning & Routing)
+
+LLMs often fail not because they lack individual skills but because they can’t string those skills together linearly. They suffer from what I call “stream of consciousness” execution — jumping between steps, skipping validation, prematurely generating output before they have everything they need.
+The Harness lays down strict tracks:
+
+> Understand Goal → Assess Information → Fetch Missing Info → Analyze → Generate → Verify → Output
+
+This isn’t just scaffolding. It’s the transfer of project management responsibility from the probabilistic model to the deterministic system. The model shouldn’t have to decide what order to do things in. That structure belongs in the Harness.
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*kYWjKr2GcMqqwnxcdzfcVA.png)
+
+### Layer 4: Memory and State (Continuity)
+
+A stateless agent has amnesia every turn. Without explicit state management, you’re essentially starting a new conversation from scratch at every step of a multi-step task.
+I’ve learned to maintain three strictly segregated memory types:
+- 1. Current Task State — What step are we on? What’s pending? What’s been confirmed?
+- 2. Conversational Intermediate Results — What conclusions have we already reached in this session?
+- 3. Long-Term Memory / User Profiles— Global preferences and context that persists across sessions.
+
+### Layer 5: Evaluation and Observability (Self-Awareness)
+
+>  The gotcha that burned me: Conflating task state with conversational history. The result is an infinitely growing, unstructured context window that degrades model performance as the task progresses. Keep them strictly separate.
+
+This layer is where primitive agents break down spectacularly. They generate output, declare success, and have no mechanism to know whether the output is actually correct.
+An agent that evaluates its own work is an agent with a profound optimistic bias. It will declare broken code as working. It will rate its own response as satisfactory when it hasn’t answered the actual question.
+The Harness needs independent, automated validation mechanisms. Not post-hoc human review — that’s too slow and doesn’t scale. Automated output validation, integrated testing environments, meticulous logging, metrics tracking, and error attribution all belong here.
+
+> The system must continuously prove to itself that its actions are correct, not just assume they are.
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*09DbMOnv81xWtXQa7M9pbg.png)
+
+### Layer 6: Constraints, Validation, and Recovery (Resilience)
+
+In production, failure is the default state. APIs timeout. JSON formats break. Search results are inaccurate. An agent without a recovery mechanism is an agent that requires a full human restart on every error.
+The Harness needs three things here:
+- Constraints: Hard-coded rules defining what the agent is strictly forbidden to do.
+- Validation: Pre-output and post-output gating checks (schema validation, format checks, constraint verification).
+- Recovery: Retry logic, fallback paths, and the ability to roll back to the last known stable state.
+
+The Hidden Enemy: Context Anxiety
+---------------------------------
+
+As tasks stretch across dozens of steps, something strange happens. Anthropic’s researchers have named it Context Anxiety.
+As the context window approaches its limits, models start dropping granular details, losing track of core objectives, and behaving as though they’re rushing to finish. They begin hallucinating conclusions that weren’t reached. They skip verification steps. They feel — if that’s the right word — urgent in a way that makes them sloppy.
+The naive solution is context compression: summarize the history, inject the summary, keep going. I tried this. It reduces token count, but it doesn’t actually reset the model’s cognitive state or attention dilution. The solution that actually works is radical: restart the agent entirely.
+Anthropic calls this _Context Reflect._ When the context grows too large, you take the compressed summary and hand it to a completely fresh agent instance — pristine context, no accumulated confusion. It’s the same principle as handling a memory leak by restarting the process rather than frantically garbage-collecting.
+Similarly, I stopped giving agents their entire tool library upfront. Instead, the Harness implements progressive disclosure: initially, the model only sees minimal tool stubs. When it signals intent to use a specific capability, the Harness dynamically injects the detailed documentation and parameter schemas. Context optimization isn’t about giving the model more information — it’s about giving it the right information, on demand, exactly when it needs it.
+
+Separating Generation from Evaluation: The Architecture That Enables Autonomy
+-----------------------------------------------------------------------------
+
+One of the most important architectural insights I’ve encountered comes from how Anthropic builds truly autonomous agents — ones that can generate complete, working products without human review for hours at a stretch.
+The trick is a strict three-way split:
+
+Press enter or click to view image in full size
+
+![](https://miro.medium.com/v2/resize:fit:700/1*ZqZkg_5wmkqZTghs9pXcHw.png)
+
+- The Planner translates vague human requests into rigorous engineering specifications.
+- The Generator takes those specifications and executes them step by step.
+- The Evaluator acts as a completely independent QA entity — functionally decoupled from the Generator.
+
+The Evaluator doesn’t just read the Generator’s code. It interacts with the rendered output. In UI work, it clicks through the interface, inspects visual layouts, checks interactive states. It validates against the real world, not against the Generator’s representation of the real world.
+OpenAI took this even further. As agents began writing code faster than human engineers could review pull requests, they built the agent a fully automated CI/CD pipeline of its own. The agent runs its code in isolated sandboxes, captures screenshots with headless browsers, reads its own execution logs, and iterates until it can verify the deployment is correct — without a human in the loop.
+
+> “Done” no longer means “I finished generating the text.” It means “I ran the code, reviewed the logs, found a bug, fixed it, and verified the deployment in the sandbox.”
+
+The Bottom Line
+---------------
+
+Here’s the truth about production AI systems, distilled from everything I’ve learned building them:
+
+> A foundation model’s intelligence defines its theoretical ceiling on a benchmark leaderboard. The robustness of the Harness Engineering determines whether that intelligence can actually survive, recover, and deliver value in the chaotic real world.
+
+The model is not your bottleneck. The model has never been your bottleneck, past a certain point.
+The gap between a 70% success rate and a 95% success rate — between a demo and a product — lives entirely in the Harness.
